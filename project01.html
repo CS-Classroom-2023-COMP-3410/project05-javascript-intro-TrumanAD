@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Digital Clock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #clock {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        .settings {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customizable Digital Clock</h1>
+    <div id="clock"></div>
+
+    <div class="settings">
+        <label>
+            <input type="checkbox" id="toggleFormat"> 12-hour format
+        </label>
+        <br>
+        <label for="colorPicker">Clock Color: </label>
+        <input type="color" id="colorPicker">
+        <br>
+        <label for="fontSize">Font Size: </label>
+        <input type="number" id="fontSize" min="16" value="48">
+    </div>
+
+    <div class="settings">
+        <h3>Set Alarm</h3>
+        <input type="time" id="alarmTime">
+        <button id="setAlarm">Set Alarm</button>
+        <button id="clearAlarm">Clear Alarm</button>
+        <p id="alarmStatus"></p>
+    </div>
+
+    <script>
+        const clock = document.getElementById("clock");
+        const toggleFormat = document.getElementById("toggleFormat");
+        const colorPicker = document.getElementById("colorPicker");
+        const fontSizeInput = document.getElementById("fontSize");
+        const alarmTimeInput = document.getElementById("alarmTime");
+        const setAlarmBtn = document.getElementById("setAlarm");
+        const clearAlarmBtn = document.getElementById("clearAlarm");
+        const alarmStatus = document.getElementById("alarmStatus");
+
+        let is12HourFormat = JSON.parse(localStorage.getItem("is12HourFormat")) || false;
+        let clockColor = localStorage.getItem("clockColor") || "#000000";
+        let clockFontSize = localStorage.getItem("clockFontSize") || "48";
+        let alarmTime = localStorage.getItem("alarmTime") || null;
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, "0");
+            const seconds = now.getSeconds().toString().padStart(2, "0");
+
+            if (is12HourFormat) {
+                const amPm = hours >= 12 ? "PM" : "AM";
+                hours = hours % 12 || 12;
+                clock.textContent = `${hours}:${minutes}:${seconds} ${amPm}`;
+            } else {
+                clock.textContent = `${hours.toString().padStart(2, "0")}:${minutes}:${seconds}`;
+            }
+
+            // Check alarm
+            const currentTime = now.toTimeString().slice(0, 5);
+            if (alarmTime && currentTime === alarmTime) {
+                alert("Alarm ringing!");
+                alarmTime = null;
+                localStorage.removeItem("alarmTime");
+                alarmStatus.textContent = "No alarm set.";
+            }
+        }
+
+        function savePreferences() {
+            localStorage.setItem("is12HourFormat", is12HourFormat);
+            localStorage.setItem("clockColor", clockColor);
+            localStorage.setItem("clockFontSize", clockFontSize);
+            if (alarmTime) localStorage.setItem("alarmTime", alarmTime);
+        }
+
+        function loadPreferences() {
+            toggleFormat.checked = is12HourFormat;
+            clock.style.color = clockColor;
+            clock.style.fontSize = `${clockFontSize}px`;
+            colorPicker.value = clockColor;
+            fontSizeInput.value = clockFontSize;
+            if (alarmTime) {
+                alarmStatus.textContent = `Alarm set for ${alarmTime}.`;
+                alarmTimeInput.value = alarmTime;
+            } else {
+                alarmStatus.textContent = "No alarm set.";
+            }
+        }
+
+        toggleFormat.addEventListener("change", () => {
+            is12HourFormat = toggleFormat.checked;
+            savePreferences();
+        });
+
+        colorPicker.addEventListener("input", () => {
+            clockColor = colorPicker.value;
+            clock.style.color = clockColor;
+            savePreferences();
+        });
+
+        fontSizeInput.addEventListener("input", () => {
+            clockFontSize = fontSizeInput.value;
+            clock.style.fontSize = `${clockFontSize}px`;
+            savePreferences();
+        });
+
+        setAlarmBtn.addEventListener("click", () => {
+            alarmTime = alarmTimeInput.value;
+            if (alarmTime) {
+                alarmStatus.textContent = `Alarm set for ${alarmTime}.`;
+                savePreferences();
+            }
+        });
+
+        clearAlarmBtn.addEventListener("click", () => {
+            alarmTime = null;
+            localStorage.removeItem("alarmTime");
+            alarmStatus.textContent = "No alarm set.";
+        });
+
+        setInterval(updateClock, 1000);
+        loadPreferences();
+    </script>
+</body>
+</html>

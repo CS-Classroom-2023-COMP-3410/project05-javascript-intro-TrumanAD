@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Keyboard Trainer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .trainer-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .display-text {
+            font-size: 20px;
+            margin-bottom: 20px;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        .display-text span.correct {
+            color: green;
+        }
+        .display-text span.incorrect {
+            color: red;
+            text-decoration: underline;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .stats {
+            margin: 10px 0;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customizable Keyboard Trainer</h1>
+    <div class="trainer-container">
+        <div class="controls">
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button onclick="startTrainer()">Start</button>
+        </div>
+        <div class="display-text" id="displayText"></div>
+        <textarea id="inputField" disabled></textarea>
+        <div class="stats">
+            <p>WPM: <span id="wpm">0</span></p>
+            <p>Accuracy: <span id="accuracy">100%</span></p>
+        </div>
+        <button onclick="restartTrainer()">Restart</button>
+    </div>
+
+    <script>
+        const easyStrings = [
+            "The quick brown fox jumps over the lazy dog.",
+            "Typing is fun and useful.",
+            "Practice makes perfect."
+        ];
+        const mediumStrings = [
+            "Programming is an essential skill in today's world.",
+            "JavaScript powers the modern web.",
+            "Never stop learning new things."
+        ];
+        const hardStrings = [
+            "He who controls the past controls the future.",
+            "The journey of a thousand miles begins with one step.",
+            "Artificial intelligence is transforming the world."
+        ];
+
+        const displayText = document.getElementById("displayText");
+        const inputField = document.getElementById("inputField");
+        const wpmDisplay = document.getElementById("wpm");
+        const accuracyDisplay = document.getElementById("accuracy");
+        const difficultySelect = document.getElementById("difficulty");
+
+        let targetText = "";
+        let startTime = null;
+        let totalTyped = 0;
+
+        function getRandomString(difficulty) {
+            const strings =
+                difficulty === "easy"
+                    ? easyStrings
+                    : difficulty === "medium"
+                    ? mediumStrings
+                    : hardStrings;
+            return strings[Math.floor(Math.random() * strings.length)];
+        }
+
+        function startTrainer() {
+            const difficulty = difficultySelect.value;
+            targetText = getRandomString(difficulty);
+            displayText.innerHTML = targetText
+                .split("")
+                .map((char) => `<span>${char}</span>`)
+                .join("");
+            inputField.value = "";
+            inputField.disabled = false;
+            inputField.focus();
+            startTime = null;
+            totalTyped = 0;
+            wpmDisplay.textContent = "0";
+            accuracyDisplay.textContent = "100%";
+        }
+
+        function restartTrainer() {
+            startTrainer();
+        }
+
+        inputField.addEventListener("input", () => {
+            const input = inputField.value;
+            const spans = displayText.querySelectorAll("span");
+            totalTyped++;
+
+            let correctChars = 0;
+
+            // Highlight correct and incorrect characters
+            spans.forEach((span, index) => {
+                if (input[index] == null) {
+                    span.classList.remove("correct", "incorrect");
+                } else if (input[index] === span.textContent) {
+                    span.classList.add("correct");
+                    span.classList.remove("incorrect");
+                    correctChars++;
+                } else {
+                    span.classList.add("incorrect");
+                    span.classList.remove("correct");
+                }
+            });
+
+            // Start timer on first input
+            if (startTime == null) {
+                startTime = Date.now();
+            }
+
+            // Calculate WPM
+            const elapsedMinutes = (Date.now() - startTime) / 1000 / 60;
+            const wordsTyped = input.split(" ").length;
+            const wpm = Math.floor(wordsTyped / elapsedMinutes);
+            wpmDisplay.textContent = isNaN(wpm) ? 0 : wpm;
+
+            // Calculate accuracy
+            const accuracy = Math.floor((correctChars / totalTyped) * 100);
+            accuracyDisplay.textContent = isNaN(accuracy) ? "100%" : `${accuracy}%`;
+
+            // End the game if the user finishes typing
+            if (input === targetText) {
+                inputField.disabled = true;
+                alert(`Well done! WPM: ${wpm}, Accuracy: ${accuracy}%`);
+            }
+        });
+    </script>
+</body>
+</html>

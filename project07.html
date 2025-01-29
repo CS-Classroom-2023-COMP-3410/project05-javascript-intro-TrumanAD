@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .calculator {
+            display: inline-block;
+            border: 2px solid #ccc;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .display {
+            width: 100%;
+            height: 50px;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            text-align: right;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .button {
+            padding: 15px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        .button:active {
+            background-color: #45a049;
+        }
+        .button.clear {
+            background-color: #f44336;
+        }
+        .button.memory {
+            background-color: #2196F3;
+        }
+        .button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Virtual Calculator</h1>
+    <div class="calculator">
+        <input type="text" class="display" id="display" readonly>
+        <div class="buttons">
+            <button class="button" onclick="appendNumber('7')">7</button>
+            <button class="button" onclick="appendNumber('8')">8</button>
+            <button class="button" onclick="appendNumber('9')">9</button>
+            <button class="button" onclick="setOperator('/')">÷</button>
+
+            <button class="button" onclick="appendNumber('4')">4</button>
+            <button class="button" onclick="appendNumber('5')">5</button>
+            <button class="button" onclick="appendNumber('6')">6</button>
+            <button class="button" onclick="setOperator('*')">×</button>
+
+            <button class="button" onclick="appendNumber('1')">1</button>
+            <button class="button" onclick="appendNumber('2')">2</button>
+            <button class="button" onclick="appendNumber('3')">3</button>
+            <button class="button" onclick="setOperator('-')">−</button>
+
+            <button class="button" onclick="appendNumber('0')">0</button>
+            <button class="button" onclick="appendNumber('.')">.</button>
+            <button class="button" onclick="calculate()">=</button>
+            <button class="button" onclick="setOperator('+')">+</button>
+
+            <button class="button clear" onclick="clearAll()">C</button>
+            <button class="button" onclick="calculateSquareRoot()">√</button>
+            <button class="button" onclick="calculatePercentage()">%</button>
+            <button class="button memory" onclick="memoryRecall()">MR</button>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = "";
+        let operator = null;
+        let previousInput = "";
+        let memory = 0;
+
+        const display = document.getElementById("display");
+
+        function updateDisplay(value) {
+            display.value = value;
+        }
+
+        function appendNumber(number) {
+            if (currentInput.includes(".") && number === ".") return;
+            currentInput += number;
+            updateDisplay(currentInput);
+        }
+
+        function setOperator(op) {
+            if (currentInput === "") return;
+            if (previousInput !== "") calculate();
+            operator = op;
+            previousInput = currentInput;
+            currentInput = "";
+        }
+
+        function calculate() {
+            if (operator === null || currentInput === "") return;
+
+            const num1 = parseFloat(previousInput);
+            const num2 = parseFloat(currentInput);
+            let result;
+
+            switch (operator) {
+                case "+":
+                    result = num1 + num2;
+                    break;
+                case "-":
+                    result = num1 - num2;
+                    break;
+                case "*":
+                    result = num1 * num2;
+                    break;
+                case "/":
+                    if (num2 === 0) {
+                        alert("Cannot divide by zero!");
+                        clearAll();
+                        return;
+                    }
+                    result = num1 / num2;
+                    break;
+                default:
+                    return;
+            }
+
+            currentInput = result.toString();
+            operator = null;
+            previousInput = "";
+            updateDisplay(currentInput);
+        }
+
+        function calculateSquareRoot() {
+            if (currentInput === "") return;
+            const num = parseFloat(currentInput);
+            if (num < 0) {
+                alert("Cannot calculate square root of a negative number!");
+                return;
+            }
+            currentInput = Math.sqrt(num).toString();
+            updateDisplay(currentInput);
+        }
+
+        function calculatePercentage() {
+            if (currentInput === "") return;
+            const num = parseFloat(currentInput);
+            currentInput = (num / 100).toString();
+            updateDisplay(currentInput);
+        }
+
+        function memoryRecall() {
+            currentInput = memory.toString();
+            updateDisplay(currentInput);
+        }
+
+        function clearAll() {
+            currentInput = "";
+            operator = null;
+            previousInput = "";
+            updateDisplay("");
+        }
+    </script>
+</body>
+</html>

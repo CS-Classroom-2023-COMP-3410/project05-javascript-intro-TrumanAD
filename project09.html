@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Visualization Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .controls {
+            margin: 20px;
+        }
+        #arrayContainer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .bar {
+            margin: 0 2px;
+            background-color: #4CAF50;
+            display: inline-block;
+            width: 20px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .highlight {
+            background-color: #FFD700;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Sorting Visualization Tool</h1>
+
+    <div class="controls">
+        <label for="algorithmSelect">Choose Algorithm:</label>
+        <select id="algorithmSelect">
+            <option value="bubbleSort">Bubble Sort</option>
+            <option value="insertionSort">Insertion Sort</option>
+        </select>
+
+        <label for="speedSelect">Animation Speed:</label>
+        <select id="speedSelect">
+            <option value="500">Slow</option>
+            <option value="200">Medium</option>
+            <option value="50">Fast</option>
+        </select>
+
+        <button id="startButton">Start</button>
+        <button id="resetButton">Reset</button>
+    </div>
+
+    <div id="arrayContainer"></div>
+    <p id="commentary"></p>
+
+    <script>
+        const arrayContainer = document.getElementById("arrayContainer");
+        const commentary = document.getElementById("commentary");
+        const startButton = document.getElementById("startButton");
+        const resetButton = document.getElementById("resetButton");
+        const algorithmSelect = document.getElementById("algorithmSelect");
+        const speedSelect = document.getElementById("speedSelect");
+
+        let array = [];
+        let isSorting = false;
+
+        // Generate a random array
+        function generateArray(size = 20) {
+            array = Array.from({ length: size }, () => Math.floor(Math.random() * 100) + 1);
+            renderArray();
+        }
+
+        // Render the array as bars
+        function renderArray() {
+            arrayContainer.innerHTML = "";
+            array.forEach(value => {
+                const bar = document.createElement("div");
+                bar.classList.add("bar");
+                bar.style.height = `${value * 3}px`; // Scale height
+                arrayContainer.appendChild(bar);
+            });
+        }
+
+        // Highlight bars during animation
+        function highlightBars(indices, color = "highlight") {
+            const bars = document.querySelectorAll(".bar");
+            indices.forEach(index => {
+                bars[index].classList.add(color);
+            });
+            setTimeout(() => {
+                indices.forEach(index => {
+                    bars[index].classList.remove(color);
+                });
+            }, parseInt(speedSelect.value));
+        }
+
+        // Bubble Sort Algorithm
+        async function bubbleSort() {
+            const bars = document.querySelectorAll(".bar");
+            for (let i = 0; i < array.length - 1; i++) {
+                for (let j = 0; j < array.length - i - 1; j++) {
+                    commentary.textContent = `Comparing ${array[j]} and ${array[j + 1]}`;
+                    highlightBars([j, j + 1]);
+                    if (array[j] > array[j + 1]) {
+                        [array[j], array[j + 1]] = [array[j + 1], array[j]]; // Swap values
+                        renderArray();
+                        await sleep(parseInt(speedSelect.value));
+                    }
+                }
+            }
+            commentary.textContent = "Array is sorted!";
+        }
+
+        // Insertion Sort Algorithm
+        async function insertionSort() {
+            for (let i = 1; i < array.length; i++) {
+                let key = array[i];
+                let j = i - 1;
+                commentary.textContent = `Inserting ${key}`;
+                highlightBars([i]);
+                while (j >= 0 && array[j] > key) {
+                    array[j + 1] = array[j];
+                    j--;
+                    renderArray();
+                    highlightBars([j + 1], "highlight");
+                    await sleep(parseInt(speedSelect.value));
+                }
+                array[j + 1] = key;
+                renderArray();
+            }
+            commentary.textContent = "Array is sorted!";
+        }
+
+        // Utility function to delay execution
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Start sorting based on the selected algorithm
+        async function startSorting() {
+            if (isSorting) return;
+            isSorting = true;
+            startButton.disabled = true;
+            resetButton.disabled = true;
+            const algorithm = algorithmSelect.value;
+            if (algorithm === "bubbleSort") {
+                await bubbleSort();
+            } else if (algorithm === "insertionSort") {
+                await insertionSort();
+            }
+            isSorting = false;
+            startButton.disabled = false;
+            resetButton.disabled = false;
+        }
+
+        // Reset the array and UI
+        function resetArray() {
+            isSorting = false;
+            startButton.disabled = false;
+            resetButton.disabled = false;
+            generateArray();
+            commentary.textContent = "";
+        }
+
+        // Event Listeners
+        startButton.addEventListener("click", startSorting);
+        resetButton.addEventListener("click", resetArray);
+
+        // Initialize
+        generateArray();
+    </script>
+</body>
+</html>

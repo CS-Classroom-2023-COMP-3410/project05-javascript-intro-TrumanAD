@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Periodic Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        #periodicTable {
+            display: grid;
+            grid-template-columns: repeat(18, 60px);
+            gap: 5px;
+            justify-content: center;
+        }
+        .element {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .element:hover {
+            background-color: #e0e0e0;
+        }
+        .selected {
+            background-color: #ffd700 !important;
+        }
+        .group-highlight {
+            background-color: #add8e6 !important;
+        }
+        #details {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+            text-align: left;
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Periodic Table</h1>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by name, symbol, or atomic number" style="width: 300px; padding: 5px;">
+        <button onclick="searchElement()">Search</button>
+    </div>
+    <div id="periodicTable"></div>
+    <div id="details"></div>
+
+    <script>
+        const elements = [
+            { atomicNumber: 1, symbol: "H", name: "Hydrogen", group: 1 },
+            { atomicNumber: 2, symbol: "He", name: "Helium", group: 18 },
+            { atomicNumber: 3, symbol: "Li", name: "Lithium", group: 1 },
+            { atomicNumber: 4, symbol: "Be", name: "Beryllium", group: 2 },
+            { atomicNumber: 5, symbol: "B", name: "Boron", group: 13 },
+            { atomicNumber: 6, symbol: "C", name: "Carbon", group: 14 },
+            { atomicNumber: 7, symbol: "N", name: "Nitrogen", group: 15 },
+            { atomicNumber: 8, symbol: "O", name: "Oxygen", group: 16 },
+            { atomicNumber: 9, symbol: "F", name: "Fluorine", group: 17 },
+            { atomicNumber: 10, symbol: "Ne", name: "Neon", group: 18 },
+            { atomicNumber: 11, symbol: "Na", name: "Sodium", group: 1 },
+            { atomicNumber: 12, symbol: "Mg", name: "Magnesium", group: 2 },
+            { atomicNumber: 13, symbol: "Al", name: "Aluminum", group: 13 },
+            { atomicNumber: 14, symbol: "Si", name: "Silicon", group: 14 },
+            { atomicNumber: 15, symbol: "P", name: "Phosphorus", group: 15 },
+            { atomicNumber: 16, symbol: "S", name: "Sulfur", group: 16 },
+            { atomicNumber: 17, symbol: "Cl", name: "Chlorine", group: 17 },
+            { atomicNumber: 18, symbol: "Ar", name: "Argon", group: 18 },
+        ];
+
+        const table = document.getElementById("periodicTable");
+        const details = document.getElementById("details");
+        let selectedElement = null;
+
+        function renderTable() {
+            table.innerHTML = "";
+            elements.forEach((element) => {
+                const cell = document.createElement("div");
+                cell.classList.add("element");
+                cell.dataset.atomicNumber = element.atomicNumber;
+                cell.dataset.group = element.group;
+                cell.textContent = element.symbol;
+                cell.addEventListener("click", () => displayDetails(element));
+                table.appendChild(cell);
+            });
+        }
+
+        function displayDetails(element) {
+            clearSelection();
+            selectedElement = element;
+
+            const cells = document.querySelectorAll(`[data-group="${element.group}"]`);
+            cells.forEach((cell) => cell.classList.add("group-highlight"));
+
+            const selectedCell = document.querySelector(`[data-atomic-number="${element.atomicNumber}"]`);
+            selectedCell.classList.add("selected");
+
+            details.style.display = "block";
+            details.innerHTML = `
+                <h3>${element.name} (${element.symbol})</h3>
+                <p><strong>Atomic Number:</strong> ${element.atomicNumber}</p>
+                <p><strong>Group:</strong> ${element.group}</p>
+            `;
+        }
+
+        function clearSelection() {
+            const selectedCells = document.querySelectorAll(".selected, .group-highlight");
+            selectedCells.forEach((cell) => cell.classList.remove("selected", "group-highlight"));
+        }
+
+        function searchElement() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const element = elements.find(
+                (e) =>
+                    e.name.toLowerCase() === query ||
+                    e.symbol.toLowerCase() === query ||
+                    e.atomicNumber.toString() === query
+            );
+            if (element) {
+                displayDetails(element);
+            } else {
+                alert("Element not found!");
+            }
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

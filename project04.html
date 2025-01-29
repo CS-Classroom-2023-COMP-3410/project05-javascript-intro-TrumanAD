@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Quiz App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .question-container {
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: left;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .results-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dynamic Quiz App</h1>
+    <div id="quizContainer" class="question-container"></div>
+    <div id="resultsContainer" class="results-container">
+        <h2>Quiz Summary</h2>
+        <p id="finalScore"></p>
+        <div id="reviewSection"></div>
+        <button onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                options: ["Berlin", "Madrid", "Paris", "Lisbon"],
+                correct: 2
+            },
+            {
+                question: "Which language runs in a web browser?",
+                options: ["Python", "Java", "C++", "JavaScript"],
+                correct: 3
+            },
+            {
+                question: "What is the largest planet in our solar system?",
+                options: ["Earth", "Mars", "Jupiter", "Saturn"],
+                correct: 2
+            },
+            {
+                question: "Who painted the Mona Lisa?",
+                options: ["Vincent Van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Claude Monet"],
+                correct: 1
+            },
+            {
+                question: "What is the square root of 64?",
+                options: ["6", "8", "7", "9"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const userAnswers = [];
+
+        const quizContainer = document.getElementById("quizContainer");
+        const resultsContainer = document.getElementById("resultsContainer");
+        const finalScore = document.getElementById("finalScore");
+        const reviewSection = document.getElementById("reviewSection");
+
+        function displayQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showResults();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            quizContainer.innerHTML = `
+                <h3>${question.question}</h3>
+                <ul class="options">
+                    ${question.options
+                        .map(
+                            (option, index) => `
+                        <li>
+                            <label>
+                                <input type="radio" name="option" value="${index}">
+                                ${option}
+                            </label>
+                        </li>`
+                        )
+                        .join("")}
+                </ul>
+                <button onclick="submitAnswer()">Submit</button>
+            `;
+        }
+
+        function submitAnswer() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            if (!selectedOption) {
+                alert("Please select an answer!");
+                return;
+            }
+
+            const answer = parseInt(selectedOption.value);
+            userAnswers.push(answer);
+
+            if (answer === questions[currentQuestionIndex].correct) {
+                score++;
+                alert("Correct!");
+            } else {
+                alert(
+                    `Wrong! The correct answer is: ${
+                        questions[currentQuestionIndex].options[questions[currentQuestionIndex].correct]
+                    }`
+                );
+            }
+
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        function showResults() {
+            quizContainer.style.display = "none";
+            resultsContainer.style.display = "block";
+
+            finalScore.textContent = `You scored ${score} out of ${questions.length}!`;
+
+            reviewSection.innerHTML = questions
+                .map((question, index) => {
+                    const userAnswer = userAnswers[index];
+                    const correctAnswer = question.correct;
+
+                    return `
+                    <div>
+                        <h4>${question.question}</h4>
+                        <p>Your answer: ${
+                            question.options[userAnswer] || "No answer"
+                        }</p>
+                        <p>Correct answer: ${question.options[correctAnswer]}</p>
+                    </div>
+                    `;
+                })
+                .join("");
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers.length = 0;
+            resultsContainer.style.display = "none";
+            quizContainer.style.display = "block";
+            displayQuestion();
+        }
+
+        // Start the quiz
+        displayQuestion();
+    </script>
+</body>
+</html>

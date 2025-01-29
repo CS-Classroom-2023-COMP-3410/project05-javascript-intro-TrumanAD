@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Matching Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #gameBoard {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 10px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform 0.3s;
+        }
+        .card.flipped, .card.matched {
+            background-color: #FFFFFF;
+            color: #4CAF50;
+            cursor: default;
+            transform: scale(1.1);
+        }
+        .card.matched {
+            background-color: #00C853;
+        }
+        .stats {
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Matching Game</h1>
+    <div class="stats">
+        <p>Moves: <span id="moveCount">0</span></p>
+        <p>Time: <span id="timeElapsed">0</span> seconds</p>
+        <button id="restartGame">Restart Game</button>
+    </div>
+    <div id="gameBoard"></div>
+
+    <script>
+        const symbols = ["🍎", "🍌", "🍇", "🍉", "🍓", "🍒", "🍋", "🥝"];
+        let cards = [];
+        let firstCard = null;
+        let secondCard = null;
+        let isFlipping = false;
+        let moveCount = 0;
+        let matchesFound = 0;
+        let timer = null;
+        let timeElapsed = 0;
+
+        const gameBoard = document.getElementById("gameBoard");
+        const moveCountDisplay = document.getElementById("moveCount");
+        const timeElapsedDisplay = document.getElementById("timeElapsed");
+        const restartButton = document.getElementById("restartGame");
+
+        function initializeGame() {
+            // Reset variables
+            cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+            firstCard = null;
+            secondCard = null;
+            isFlipping = false;
+            moveCount = 0;
+            matchesFound = 0;
+            timeElapsed = 0;
+
+            // Reset UI
+            gameBoard.innerHTML = "";
+            moveCountDisplay.textContent = moveCount;
+            timeElapsedDisplay.textContent = timeElapsed;
+
+            // Create card elements
+            cards.forEach((symbol, index) => {
+                const card = document.createElement("div");
+                card.classList.add("card");
+                card.dataset.index = index;
+                card.dataset.symbol = symbol;
+                card.addEventListener("click", handleCardClick);
+                gameBoard.appendChild(card);
+            });
+
+            // Start timer
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+                timeElapsed++;
+                timeElapsedDisplay.textContent = timeElapsed;
+            }, 1000);
+        }
+
+        function handleCardClick(event) {
+            const card = event.target;
+
+            if (isFlipping || card.classList.contains("flipped") || card.classList.contains("matched")) {
+                return;
+            }
+
+            // Flip the card
+            card.classList.add("flipped");
+            card.textContent = card.dataset.symbol;
+
+            if (!firstCard) {
+                firstCard = card;
+            } else if (!secondCard) {
+                secondCard = card;
+                isFlipping = true;
+
+                // Check for match
+                moveCount++;
+                moveCountDisplay.textContent = moveCount;
+
+                if (firstCard.dataset.symbol === secondCard.dataset.symbol) {
+                    // Match found
+                    firstCard.classList.add("matched");
+                    secondCard.classList.add("matched");
+                    matchesFound++;
+
+                    resetFlippedCards();
+
+                    // Check if the game is complete
+                    if (matchesFound === symbols.length) {
+                        clearInterval(timer);
+                        alert(`Congratulations! You completed the game in ${moveCount} moves and ${timeElapsed} seconds.`);
+                    }
+                } else {
+                    // No match, flip back
+                    setTimeout(() => {
+                        firstCard.classList.remove("flipped");
+                        secondCard.classList.remove("flipped");
+                        firstCard.textContent = "";
+                        secondCard.textContent = "";
+                        resetFlippedCards();
+                    }, 1000);
+                }
+            }
+        }
+
+        function resetFlippedCards() {
+            firstCard = null;
+            secondCard = null;
+            isFlipping = false;
+        }
+
+        restartButton.addEventListener("click", initializeGame);
+
+        // Initialize the game on page load
+        initializeGame();
+    </script>
+</body>
+</html>

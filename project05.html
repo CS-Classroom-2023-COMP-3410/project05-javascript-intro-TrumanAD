@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Drawing Canvas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        .controls label {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customizable Drawing Canvas</h1>
+
+    <div class="controls">
+        <label for="brushColor">Brush Color:</label>
+        <input type="color" id="brushColor" value="#000000">
+
+        <label for="brushSize">Brush Size:</label>
+        <input type="number" id="brushSize" value="5" min="1" max="50">
+
+        <label for="bgColor">Canvas Background:</label>
+        <input type="color" id="bgColor" value="#ffffff">
+    </div>
+
+    <canvas id="drawingCanvas" width="800" height="400"></canvas>
+
+    <div class="controls">
+        <button id="undoButton">Undo</button>
+        <button id="clearButton">Clear</button>
+        <button id="saveButton">Save as Image</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("drawingCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const brushColorInput = document.getElementById("brushColor");
+        const brushSizeInput = document.getElementById("brushSize");
+        const bgColorInput = document.getElementById("bgColor");
+        const undoButton = document.getElementById("undoButton");
+        const clearButton = document.getElementById("clearButton");
+        const saveButton = document.getElementById("saveButton");
+
+        let isDrawing = false;
+        let brushColor = brushColorInput.value;
+        let brushSize = parseInt(brushSizeInput.value);
+        let strokes = [];
+        let currentStroke = [];
+
+        // Initialize canvas background
+        ctx.fillStyle = bgColorInput.value;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Start drawing
+        canvas.addEventListener("mousedown", (e) => {
+            isDrawing = true;
+            currentStroke = [];
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        // Draw
+        canvas.addEventListener("mousemove", (e) => {
+            if (!isDrawing) return;
+            const x = e.offsetX;
+            const y = e.offsetY;
+
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = "round";
+            ctx.stroke();
+
+            currentStroke.push({ x, y, color: brushColor, size: brushSize });
+        });
+
+        // Stop drawing
+        canvas.addEventListener("mouseup", () => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            ctx.closePath();
+            if (currentStroke.length) strokes.push([...currentStroke]);
+        });
+
+        // Undo the last stroke
+        undoButton.addEventListener("click", () => {
+            strokes.pop();
+            redrawCanvas();
+        });
+
+        // Clear the canvas
+        clearButton.addEventListener("click", () => {
+            strokes = [];
+            redrawCanvas();
+        });
+
+        // Save canvas as an image
+        saveButton.addEventListener("click", () => {
+            const link = document.createElement("a");
+            link.download = "drawing.png";
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // Update brush color
+        brushColorInput.addEventListener("input", (e) => {
+            brushColor = e.target.value;
+        });
+
+        // Update brush size
+        brushSizeInput.addEventListener("input", (e) => {
+            brushSize = parseInt(e.target.value);
+        });
+
+        // Update canvas background color
+        bgColorInput.addEventListener("input", (e) => {
+            const bgColor = e.target.value;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            redrawCanvas();
+        });
+
+        // Redraw the canvas
+        function redrawCanvas() {
+            ctx.fillStyle = bgColorInput.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            strokes.forEach((stroke) => {
+                ctx.beginPath();
+                stroke.forEach((point, index) => {
+                    if (index === 0) {
+                        ctx.moveTo(point.x, point.y);
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                    ctx.strokeStyle = point.color;
+                    ctx.lineWidth = point.size;
+                    ctx.lineCap = "round";
+                    ctx.stroke();
+                });
+                ctx.closePath();
+            });
+        }
+    </script>
+</body>
+</html>

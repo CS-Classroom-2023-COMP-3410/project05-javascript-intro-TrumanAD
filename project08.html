@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Story Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .story-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .choices {
+            margin-top: 20px;
+        }
+        .choices button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+        .choices button:hover {
+            background-color: #45a049;
+        }
+        #resetButton {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="story-container">
+        <h2>Interactive Story Game</h2>
+        <p id="storyText"></p>
+        <div class="choices" id="choicesContainer"></div>
+        <button id="resetButton" onclick="restartGame()">Restart Game</button>
+    </div>
+
+    <script>
+        const story = {
+            start: {
+                text: "You wake up in a dark forest. A path leads to the left and another to the right. Which way do you go?",
+                choices: [
+                    { text: "Go left", next: "leftPath" },
+                    { text: "Go right", next: "rightPath" }
+                ]
+            },
+            leftPath: {
+                text: "You find a small cabin. Do you enter or keep walking?",
+                choices: [
+                    { text: "Enter the cabin", next: "cabinInside" },
+                    { text: "Keep walking", next: "lostWoods" }
+                ]
+            },
+            rightPath: {
+                text: "You find a river. Do you swim across or follow the river?",
+                choices: [
+                    { text: "Swim across", next: "drowned" },
+                    { text: "Follow the river", next: "foundVillage" }
+                ]
+            },
+            cabinInside: {
+                text: "Inside the cabin, you find a treasure chest! You win!",
+                choices: [{ text: "Restart", next: "start" }]
+            },
+            lostWoods: {
+                text: "You wander for hours and get lost in the woods. Game over.",
+                choices: [{ text: "Restart", next: "start" }]
+            },
+            drowned: {
+                text: "You attempt to swim but get swept away by the current. Game over.",
+                choices: [{ text: "Restart", next: "start" }]
+            },
+            foundVillage: {
+                text: "You follow the river and find a village where you are safe. You win!",
+                choices: [{ text: "Restart", next: "start" }]
+            }
+        };
+
+        const storyText = document.getElementById("storyText");
+        const choicesContainer = document.getElementById("choicesContainer");
+
+        function displayStoryNode(nodeKey) {
+            const node = story[nodeKey];
+            storyText.textContent = node.text;
+            choicesContainer.innerHTML = "";
+
+            node.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.textContent = choice.text;
+                button.onclick = () => {
+                    localStorage.setItem("currentStoryNode", choice.next);
+                    displayStoryNode(choice.next);
+                };
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function restartGame() {
+            localStorage.removeItem("currentStoryNode");
+            displayStoryNode("start");
+        }
+
+        const savedNode = localStorage.getItem("currentStoryNode") || "start";
+        displayStoryNode(savedNode);
+    </script>
+
+</body>
+</html>
